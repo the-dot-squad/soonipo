@@ -1,6 +1,6 @@
 {
   "name": "soonipo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Next.js web app for tracking upcoming IPOs and analyzing recently priced stocks in real-time.",
   "scripts": {
     "dev": "next dev --turbopack",
@@ -9,21 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@vercel/analytics": "^1.5.0",
-    "framer-motion": "^12.7.3",
-    "lucide-react": "^0.488.0",
+    "@vercel/analytics": "^1.6.1",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.555.0",
     "moment": "^2.30.1",
-    "moment-timezone": "^0.5.48",
+    "moment-timezone": "^0.6.0",
     "mongoose": "^8.13.2",
-    "next": "15.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "15.3.6",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "recharts": "^2.15.3",
     "yahoo-finance2": "^2.13.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "eslint": "9.25.1",
+    "eslint": "9.39.1",
     "eslint-config-next": "15.3.1",
     "tailwindcss": "^4"
   }
