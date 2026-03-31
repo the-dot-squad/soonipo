@@ -1,19 +1,38 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-let isConnected = false; // Track the connection status
+const globalForMongoose = globalThis;
+
+if (!globalForMongoose.mongo) {
+  globalForMongoose.mongo = { conn: null, promise: null };
+}
+
+const cached = globalForMongoose.mongo;
 
 export default async function connectDB() {
-  if (isConnected) {
-    // Already connected
-    return;
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    throw new Error("Missing MONGO_URI environment variable.");
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(uri, {
+        serverSelectionTimeoutMS: 30_000,
+        maxPoolSize: 10,
+      })
+      .then((m) => m);
   }
 
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    isConnected = true;
-    console.log('MongoDB connected successfully.');
+    cached.conn = await cached.promise;
   } catch (err) {
-    console.error('MongoDB connection failed:', err);
+    cached.promise = null;
     throw err;
   }
+
+  return cached.conn;
 }

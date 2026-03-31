@@ -1,94 +1,127 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Tabs from "./Tabs";
 import IpoTable from "./IpoTable";
 import IpoDetailsCard from "./IpoDetailsCard";
+import MarketSidebar from "./MarketSidebar";
+import { Card, CardContent } from "@/components/ui/card";
 
-export default function IpoTabs({ upcomingIpos, pastIpos }) {
-  /* ---------- state ---------- */
-  const [active,   setActive]   = useState("upcoming");
+export default function IpoTabs({ upcomingIpos, pastIpos, marketOverview }) {
+  const [active, setActive] = useState("upcoming");
   const [selected, setSelected] = useState(null);
-
-  /* once a row is clicked for the first time */
-  const [cardDocked, setCardDocked] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [selectedHistory, setSelectedHistory] = useState([]);
+  const [loadingSelectedStock, setLoadingSelectedStock] = useState(false);
+  const [query, setQuery] = useState("");
+  const [detailHint, setDetailHint] = useState("");
 
   const ipos = active === "upcoming" ? upcomingIpos : pastIpos;
-  const showCard = Boolean(selected);
+  const filteredIpos = ipos.filter((ipo) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      ipo.symbol?.toLowerCase().includes(q) ||
+      ipo.companyName?.toLowerCase().includes(q) ||
+      ipo.exchange?.symbol?.toLowerCase().includes(q)
+    );
+  });
 
-  /* table width: 100 % until first open, then 68 % */
-  const tableWidth = cardDocked ? "68%" : "100%";
-
-  /* ---------- helpers ---------- */
   const handleRowSelect = (ipo) => {
     setSelected(ipo);
-    if (!cardDocked) setCardDocked(true); // lock layout after first open
+    setSelectedStock(null);
+    setSelectedHistory([]);
+    setDetailHint("");
+    const status = (ipo?.status ?? "").toString().toLowerCase().trim();
+    const isTradableStatus = ["priced", "active"].includes(status);
+    const isPastTab = active === "past";
+    if (!ipo?.symbol || (!isPastTab && !isTradableStatus)) {
+      if (ipo?.symbol && !isPastTab && !isTradableStatus) {
+        setDetailHint("Market details open for listed tickers (priced/active) or any row in the Past tab.");
+      }
+      return;
+    }
+
+    (async () => {
+      setLoadingSelectedStock(true);
+      try {
+        const [stockRes, histRes] = await Promise.all([
+          fetch(`/api/stock/${encodeURIComponent(ipo.symbol)}`),
+          fetch(`/api/stock/${encodeURIComponent(ipo.symbol)}?range=7d&interval=1d`),
+        ]);
+        const json = await stockRes.json();
+        const histJson = await histRes.json();
+        if (json?.data) {
+          setSelectedStock(json.data);
+          if (Array.isArray(histJson?.data)) {
+            setSelectedHistory(
+              histJson.data
+                .filter((p) => typeof p?.close === "number")
+                .map((p) => ({ d: p.date, c: p.close }))
+            );
+          }
+        } else {
+          setDetailHint("No live market data is available for this IPO yet.");
+        }
+      } catch {
+        setDetailHint("Live market data is temporarily unavailable.");
+      } finally {
+        setLoadingSelectedStock(false);
+      }
+    })();
   };
 
   const handleTabChange = (id) => {
     setActive(id);
     setSelected(null);
-    setCardDocked(false); // reset layout on list switch
+    setSelectedStock(null);
+    setSelectedHistory([]);
+    setDetailHint("");
+    setQuery("");
   };
 
-  /* ---------- render ---------- */
+  const shouldShowDetail = Boolean(selected && selectedStock);
+  const normalizedHistory =
+    selectedHistory.length > 0
+      ? (() => {
+          const base = selectedHistory[0]?.c;
+          return selectedHistory.map((p) => ({
+            ...p,
+            pct: base ? ((p.c - base) / base) * 100 : 0,
+          }));
+        })()
+      : [];
+
   return (
     <div className="relative">
-      {/* top tabs */}
-      <div className="mb-6 flex justify-center">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Tabs active={active} onChange={handleTabChange} />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter by symbol, company, exchange..."
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none ring-ring transition focus-visible:ring-2 md:w-[320px]"
+        />
       </div>
 
-      {/* flex row */}
-      <div className="flex justify-center">
-        {/* TABLE  */}
-        <motion.div
-          layout
-          transition={{ duration: 0.45 }}
-          style={{ width: tableWidth }}
-          className="min-w-0"
-        >
-          <IpoTable ipos={ipos} onSelectIpo={handleRowSelect} />
-        </motion.div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+        <div className="self-start space-y-4 xl:col-span-3">
+          {shouldShowDetail && <IpoDetailsCard ipo={selected} stock={selectedStock} history={normalizedHistory} />}
+          <MarketSidebar indices={marketOverview} />
+        </div>
 
-        {/* CARD dock (desktop) stays mounted; inner content animates */}
-        <motion.div
-          layout
-          style={{ width: cardDocked ? "32%" : 0 }}
-          className={`hidden md:block overflow-hidden ml-6`}
-        >
-          <AnimatePresence mode="wait">
-            {showCard && (
-              <motion.div
-                key={selected.symbol}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <IpoDetailsCard ipo={selected} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        <div className="xl:col-span-9">
+          {(loadingSelectedStock || detailHint) && (
+            <Card className="mb-4 border-border/70 bg-card/80">
+              <CardContent className="p-3 text-sm text-muted-foreground">
+                {loadingSelectedStock ? "Loading live market data..." : detailHint}
+              </CardContent>
+            </Card>
+          )}
+          <IpoTable ipos={filteredIpos} onSelectIpo={handleRowSelect} />
+        </div>
+
       </div>
-
-      {/* Mobile card (stacked) */}
-      <AnimatePresence mode="wait">
-        {showCard && (
-          <motion.div
-            key={selected.symbol + "-m"}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="md:hidden mt-6"
-          >
-            <IpoDetailsCard ipo={selected} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

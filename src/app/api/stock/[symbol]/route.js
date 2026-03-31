@@ -26,11 +26,15 @@ export async function GET(request, { params }) {
     const { searchParams } = new URL(request.url);
     const from = searchParams.get("from");
     const to = searchParams.get("to");
+    const range = searchParams.get("range");
     const interval = searchParams.get("interval") || "1d"; // default to 1 day
     
     let result = null;
 
-    if (from && to) {
+    if (range) {
+      const chart = await YahooFinance.chartRange(symbol, range, interval);
+      result = chart?.rows || null;
+    } else if (from && to) {
       // If we have both from & to, fetch historical data
       result = await YahooFinance.history(symbol, from, to, interval);
     } else {
@@ -38,14 +42,11 @@ export async function GET(request, { params }) {
       result = await getStockData(symbol);
     }
 
-    if (!result) {
-      return NextResponse.json(
-        { error: `No data returned for symbol: ${symbol}` },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ symbol, data: result });
+    return NextResponse.json({
+      symbol,
+      data: result || null,
+      unavailable: !result,
+    });
   } catch (err) {
     console.error("Error in [symbol] route:", err);
     return NextResponse.json(

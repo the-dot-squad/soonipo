@@ -6,9 +6,6 @@ import * as finnhub from "@/lib/finhub";
 import { get as getStockExchange } from "@/lib/stockExchanges";
 import moment from "moment-timezone";
 
-// Tell Next 15+ to deploy as a Node.js function
-export const runtime = "nodejs";
-
 // Vercel always triggers cron jobs with an HTTP **GET**
 export async function GET(request) {
   // ──────────────────── 1. security gate ───────────────────

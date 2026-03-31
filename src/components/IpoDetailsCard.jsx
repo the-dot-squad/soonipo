@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useMemo } from "react";
 import moment from "moment";
 import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
  * Details card:
@@ -12,142 +12,147 @@ import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
  *
  * Extra: calculates absolute / % gain from IPO price → current price.
  */
-export default function IpoDetailsCard({ ipo }) {
-  const [stock, setStock] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  /* ───────────────────────── fetch Yahoo once selected ────────────────────── */
-  useEffect(() => {
-    if (!ipo || !["priced", "active"].includes(ipo.status)) {
-      setStock(null);
-      return;
-    }
-
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/stock/${ipo.symbol}`);
-        if (!res.ok) throw new Error("Yahoo fetch failed");
-        const json = await res.json();
-        setStock(json.data);
-      } catch (err) {
-        console.error(err);
-        setStock(null);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [ipo]);
-
-  /* ───────────── compute gain/loss since IPO price (if we have both) ───────── */
+export default function IpoDetailsCard({ ipo, stock, history = [] }) {
   const gain = useMemo(() => {
-    if (!stock?.regularMarketPrice || !ipo?.price) return null;
-    const diff = stock.regularMarketPrice - ipo.price;
-    const pct = (diff / ipo.price) * 100;
+    const ipoPrice = Number(ipo?.price);
+    const live = Number(stock?.regularMarketPrice);
+    if (!Number.isFinite(live) || !Number.isFinite(ipoPrice) || ipoPrice === 0) return null;
+    const diff = live - ipoPrice;
+    const pct = (diff / ipoPrice) * 100;
     return { diff, pct };
   }, [stock, ipo]);
 
   /* ─────────────────────────────── rendering ──────────────────────────────── */
-  return (
-    <AnimatePresence mode="wait">
-      {ipo && (
-        <motion.aside
-          key={ipo.symbol}
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.25 }}
-          className="bg-white hover-card rounded-xl shadow-md w-full p-6 space-y-6"
-        >
-          {/* ───── Section 1 • Overview ───── */}
-          <section>
-            <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-              {stock?.shortName || ipo.companyName || ipo.symbol}
-            </h3>
+  if (!ipo || !stock) return null;
 
-            <ul className="text-sm text-gray-700 grid grid-cols-2 gap-y-2">
+  const chartValues = history.map((h) => Number(h.pct) || 0);
+  const showHistory = chartValues.length > 1;
+  const min = showHistory ? Math.min(...chartValues) : 0;
+  const max = showHistory ? Math.max(...chartValues) : 1;
+  const range = max - min || 1;
+  const width = 220;
+  const height = 48;
+  const pad = 4;
+  const points = showHistory
+    ? chartValues
+        .map((v, i) => {
+          const x = pad + (i * (width - pad * 2)) / (chartValues.length - 1);
+          const y = height - pad - ((v - min) / range) * (height - pad * 2);
+          return `${x},${y}`;
+        })
+        .join(" ")
+    : "";
+  const historyPositive = (history[history.length - 1]?.pct ?? 0) >= 0;
+  const startLabel = showHistory
+    ? new Date(history[0].d).toLocaleDateString("en-US", { weekday: "short" })
+    : "";
+  const endLabel = showHistory
+    ? new Date(history[history.length - 1].d).toLocaleDateString("en-US", { weekday: "short" })
+    : "";
+
+  return (
+    <aside className="w-full">
+      <Card className="glass w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {stock?.shortName || ipo.companyName || ipo.symbol}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <section>
+            <ul className="grid grid-cols-2 gap-y-2 text-sm text-muted-foreground">
               <li>
-                <span className="font-medium">Symbol:</span> {ipo.symbol}
+                <span className="font-medium text-foreground">Symbol:</span> {ipo.symbol}
               </li>
               <li>
-                <span className="font-medium">Status:</span> {ipo.status}
+                <span className="font-medium text-foreground">Status:</span> {ipo.status}
               </li>
               <li className="col-span-2">
-                <span className="font-medium">Listed:</span>{" "}
-                {ipo.date
-                  ? moment(ipo.date).fromNow()
-                  : "—"}
+                <span className="font-medium text-foreground">Listed:</span>{" "}
+                {ipo.date ? moment(ipo.date).fromNow() : "-"}
               </li>
               <li>
-                <span className="font-medium">IPO Price:</span>{" "}
-                {ipo.price ?? "—"}
+                <span className="font-medium text-foreground">IPO Price:</span> {ipo.price ?? "-"}
               </li>
               <li>
-                <span className="font-medium">Currency:</span>{" "}
-                {stock?.currencySymbol || stock?.currency || "—"}
+                <span className="font-medium text-foreground">Currency:</span>{" "}
+                {stock?.currencySymbol || stock?.currency || "-"}
               </li>
             </ul>
           </section>
 
-          {/* ───── Section 2 • Market Snapshot ───── */}
           <section className="border-t pt-4">
-            <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-1">
+            <h4 className="mb-3 flex items-center gap-1 font-medium">
               <DollarSign size={16} /> Market Snapshot
             </h4>
 
-            {loading ? (
-              <p className="text-sm text-blue-600">Loading real-time data...</p>
-            ) : stock ? (
-              <div className="text-sm text-gray-700 space-y-2">
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Current Price</span>
+                <span className="font-semibold text-foreground">
+                  {Number.isFinite(Number(stock.regularMarketPrice))
+                    ? Number(stock.regularMarketPrice).toLocaleString("en-US", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      })
+                    : stock.regularMarketPrice}{" "}
+                  {stock.currencySymbol || ""}
+                </span>
+              </div>
+
+              {gain && (
                 <div className="flex justify-between">
-                  <span>Current Price</span>
-                  <span className="font-semibold">
-                    {stock.regularMarketPrice} {stock.currencySymbol || ""}
+                  <span>
+                    Since IPO{" "}
+                    {gain.diff >= 0 ? (
+                      <TrendingUp size={14} className="inline text-green-600" />
+                    ) : (
+                      <TrendingDown size={14} className="inline text-red-600" />
+                    )}
+                  </span>
+                  <span className={gain.diff >= 0 ? "font-medium text-green-600" : "font-medium text-red-600"}>
+                    {gain.diff.toFixed(2)} ({gain.pct.toFixed(2)}%)
                   </span>
                 </div>
+              )}
 
-                {gain && (
-                  <div className="flex justify-between">
-                    <span>
-                      Since IPO
-                      {gain.diff >= 0 ? (
-                        <TrendingUp size={14} className="inline text-green-600" />
-                      ) : (
-                        <TrendingDown size={14} className="inline text-red-600" />
-                      )}
-                    </span>
-                    <span
-                      className={
-                        gain.diff >= 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"
-                      }
-                    >
-                      {gain.diff.toFixed(2)} ({gain.pct.toFixed(2)}%)
-                    </span>
-                  </div>
-                )}
-
+              {typeof stock.marketCap === "number" && Number.isFinite(stock.marketCap) && (
                 <div className="flex justify-between">
                   <span>Market Cap</span>
-                  <span>{Intl.NumberFormat("en-US", {
+                  <span className="text-foreground">
+                    {Intl.NumberFormat("en-US", {
                       style: "currency",
                       currency: stock.currency || "USD",
                       notation: "compact",
                     }).format(stock.marketCap)}
                   </span>
                 </div>
+              )}
 
-                <p className="text-xs text-gray-400">
-                  Source: Yahoo Finance - cached ≤ 5 mins
-                </p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 italic">
-                No real-time data available.
-              </p>
-            )}
+              {showHistory && (
+                <div className="mt-2">
+                  <svg viewBox={`0 0 ${width} ${height}`} className="h-12 w-full overflow-visible">
+                    <polyline
+                      fill="none"
+                      stroke={historyPositive ? "#16a34a" : "#dc2626"}
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      points={points}
+                    />
+                  </svg>
+                  <div className="mt-0.5 flex justify-between text-[10px] text-muted-foreground">
+                    <span>{startLabel}</span>
+                    <span>{endLabel}</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">Source: Yahoo Finance - cached up to 5 mins</p>
+            </div>
           </section>
-        </motion.aside>
-      )}
-    </AnimatePresence>
+        </CardContent>
+      </Card>
+    </aside>
   );
 }

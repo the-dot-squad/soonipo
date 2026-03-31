@@ -16,7 +16,7 @@ export async function GET(request) {
     await connectDB();
 
     // Extract query param from the URL
-    const { q } = Object.fromEntries(new URL(request.url).searchParams);
+    const q = request.nextUrl.searchParams.get("q");
 
     // If 'search' is missing or empty, respond with 400
     if (!q) {
