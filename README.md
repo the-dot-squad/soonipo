@@ -57,7 +57,8 @@ Create a `.env.local` in the project root:
 
 ```env
 MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER_HOSTNAME/DATABASE_NAME
-CRON_SECRET=your_long_random_secret   # optional: protects POST /api/cron from strangers
+CRON_SECRET=your_long_random_secret
+NEXT_PUBLIC_BASE_URL=https://soonipo.com
 ```
 
 Use a **database user with read/write** access (not the Atlas admin account).
@@ -78,9 +79,21 @@ The dev server uses **Turbopack** (`next dev --turbopack`).
 If you use `CRON_SECRET`, refresh the IPO collection with:
 
 ```bash
-curl -X POST http://localhost:3000/api/cron \
+curl -X GET http://localhost:3000/api/cron \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```
+
+## 🔐 API Security
+
+The app includes a centralized API proxy guard for `/api/*`:
+
+- Cross-site browser requests are blocked (`Origin` + `Sec-Fetch-Site` checks)
+- Request methods are restricted (`GET`, `HEAD`, `OPTIONS`)
+- IP-based rate limiting is enabled for public routes
+- Security headers are added on API responses (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`)
+- `/api/cron` remains protected by `CRON_SECRET` bearer auth
+
+Note: public GET endpoints are still internet-accessible by design; for strict access control, add user auth and/or edge WAF rules.
 
 ---
 

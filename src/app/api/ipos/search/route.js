@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import IPO from "@/models/ipo";
 
@@ -12,6 +12,8 @@ import IPO from "@/models/ipo";
  *   GET /api/ipos/search?q=tesla
  */
 export async function GET(request) {
+  await connection();
+
   try {
     await connectDB();
 

@@ -1,6 +1,6 @@
 {
   "name": "soonipo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Next.js web app for tracking upcoming IPOs and analyzing recently priced stocks in real-time.",
   "scripts": {
     "dev": "next dev --turbopack",
@@ -26,9 +26,9 @@
     "yahoo-finance2": "^3.14.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.2.2",
     "eslint": "9.39.1",
     "eslint-config-next": "16.2.1",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4.2.2"
   }
 }
