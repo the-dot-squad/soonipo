@@ -1,6 +1,6 @@
 {
   "name": "soonipo",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Next.js web app for tracking upcoming IPOs and analyzing recently priced stocks in real-time.",
   "scripts": {
     "dev": "next dev --turbopack",
@@ -12,23 +12,27 @@
     "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.38.0",
+    "dayjs": "^1.11.21",
+    "framer-motion": "^12.43.0",
     "lucide-react": "^0.555.0",
-    "moment": "^2.30.1",
-    "moment-timezone": "^0.6.2",
-    "mongoose": "^9.6.2",
-    "next": "16.2.6",
+    "mongoose": "^9.8.1",
+    "next": "16.2.12",
     "next-themes": "^0.4.6",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "recharts": "^3.8.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^3.6.0",
     "yahoo-finance2": "^3.14.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4.3.0"
+    "eslint-config-next": "16.2.12",
+    "tailwindcss": "^4.3.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.25",
+    "sharp": "^0.35.3",
+    "brace-expansion": "2.0.2"
   }
 }
