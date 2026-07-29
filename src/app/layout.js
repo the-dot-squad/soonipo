@@ -78,8 +78,8 @@ export default function RootLayout({ children }) {
         >
           <Footer />
         </Suspense>
+        <Analytics />
       </body>
-      <Analytics />
     </html>
   );
 }
