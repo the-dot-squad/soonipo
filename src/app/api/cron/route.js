@@ -4,7 +4,7 @@ import connectDB from "@/lib/db";
 import IPO from "@/models/ipo";
 import * as finnhub from "@/lib/finhub";
 import { get as getStockExchange } from "@/lib/stockExchanges";
-import moment from "moment-timezone";
+import dayjs from "@/lib/dayjs";
 
 // Vercel always triggers cron jobs with an HTTP **GET**
 export async function GET(request) {
@@ -18,8 +18,8 @@ export async function GET(request) {
   try {
     await connectDB();
 
-    const past = moment().subtract(14, "days");
-    const future = moment().add(14, "days");
+    const past = dayjs().subtract(14, "day");
+    const future = dayjs().add(14, "day");
     const ipos = await finnhub.ipoCalendar(
       past.format("YYYY-MM-DD"),
       future.format("YYYY-MM-DD")
@@ -43,7 +43,7 @@ export async function GET(request) {
 
       // Convert to date object based on timezone of exchange
       const itemDate = item?.date
-        ? moment.tz(item.date, exchangeMeta?.timezone || "UTC").toDate()
+        ? dayjs.tz(item.date, exchangeMeta?.timezone || "UTC").toDate()
         : null;
 
       const where = item.symbol
@@ -53,7 +53,7 @@ export async function GET(request) {
       // Limit where clause in case of new ipo for previous record
       if (itemDate) {
         where["date"] = {
-          $gte: moment(itemDate).subtract(20, "days").toDate(),
+          $gte: dayjs(itemDate).subtract(20, "day").toDate(),
         };
       }
 

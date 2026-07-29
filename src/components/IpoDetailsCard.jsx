@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import moment from "moment";
+import dayjs from "@/lib/dayjs";
 import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -69,7 +69,7 @@ export default function IpoDetailsCard({ ipo, stock, history = [] }) {
               </li>
               <li className="col-span-2">
                 <span className="font-medium text-foreground">Listed:</span>{" "}
-                {ipo.date ? moment(ipo.date).fromNow() : "-"}
+                {ipo.date ? dayjs(ipo.date).fromNow() : "-"}
               </li>
               <li>
                 <span className="font-medium text-foreground">IPO Price:</span> {ipo.price ?? "-"}

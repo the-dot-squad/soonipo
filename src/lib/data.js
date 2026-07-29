@@ -1,7 +1,6 @@
 "use server";
 
 import { cacheLife, cacheTag } from "next/cache";
-import moment from "moment";
 import connectDB from "./db.js";
 import IPO from "@/models/ipo";
 import { quoteWithChartFallback, chartRange } from "./yahoo.js";
@@ -45,7 +44,7 @@ export async function getUpcomingIpos() {
   cacheTag("ipos", "ipos-upcoming");
 
   await connectDB();
-  const now = moment().toDate();
+  const now = new Date();
   const ipos = await IPO.find({
     $or: [{ date: { $gt: now } }, { date: null }],
   })
@@ -66,7 +65,7 @@ export async function getPastIpos() {
   cacheTag("ipos", "ipos-past");
 
   await connectDB();
-  const now = moment().toDate();
+  const now = new Date();
   const ipos = await IPO.find({
     date: { $lt: now },
   })

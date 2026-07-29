@@ -8,7 +8,7 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
-import moment from "moment";
+import dayjs from "@/lib/dayjs";
 
 /**
  * Fetches historical prices from /api/stocks/[symbol]?from=...&to=...
@@ -20,7 +20,7 @@ export default function IpoSparkline({ symbol, ipoDate }) {
   useEffect(() => {
     if (!symbol || !ipoDate) return;
 
-    const url = `/api/stock/${symbol}?from=${ipoDate}&to=${moment().format(
+    const url = `/api/stock/${symbol}?from=${ipoDate}&to=${dayjs().format(
       "YYYY-MM-DD"
     )}&interval=1d`;
 
@@ -49,7 +49,7 @@ export default function IpoSparkline({ symbol, ipoDate }) {
         <XAxis hide dataKey="x" />
         <Tooltip
           formatter={(v) => v.toFixed(2)}
-          labelFormatter={(l) => moment(l).format("MMM DD YYYY")}
+          labelFormatter={(l) => dayjs(l).format("MMM DD YYYY")}
         />
         <Line
           type="monotone"

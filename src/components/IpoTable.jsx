@@ -1,5 +1,5 @@
 "use client";
-import moment from "moment";
+import dayjs from "@/lib/dayjs";
 import { FileBarChart2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +57,7 @@ export default function IpoTable({ ipos, onSelectIpo }) {
                 </TableCell>
                 <TableCell className="max-w-[240px] truncate">{ipo.companyName}</TableCell>
                 <TableCell className="whitespace-nowrap">{ipo.exchange?.symbol ?? "N/A"}</TableCell>
-                <TableCell className="whitespace-nowrap">{ipo.date ? moment(ipo.date).format("YYYY-MM-DD") : "N/A"}</TableCell>
+                <TableCell className="whitespace-nowrap">{ipo.date ? dayjs(ipo.date).format("YYYY-MM-DD") : "N/A"}</TableCell>
                 <TableCell className="hidden whitespace-nowrap sm:table-cell">{ipo.price ?? "-"}</TableCell>
                 <TableCell className="hidden whitespace-nowrap sm:table-cell">
                   <Badge variant="secondary" className={getStatusBadgeClass(ipo.status)}>
