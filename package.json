@@ -1,6 +1,6 @@
 {
   "name": "soonipo",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Next.js web app for tracking upcoming IPOs and analyzing recently priced stocks in real-time.",
   "scripts": {
     "dev": "next dev --turbopack",
@@ -33,6 +33,6 @@
   "overrides": {
     "postcss": "^8.5.25",
     "sharp": "^0.35.3",
-    "brace-expansion": "2.0.2"
+    "brace-expansion": "^2.1.3"
   }
 }
