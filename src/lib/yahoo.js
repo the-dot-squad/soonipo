@@ -1,6 +1,6 @@
 import YahooFinance from "yahoo-finance2";
 
-const yahooFinance = new YahooFinance();
+const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
 function isRateLimitedError(err) {
   const message = String(err?.message || "").toLowerCase();
