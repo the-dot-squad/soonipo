@@ -1,7 +1,7 @@
 # 🚀 Soon IPO
 
 [![Live Demo](https://img.shields.io/badge/live-soonipo.com-0070F3?style=for-the-badge&logo=vercel&logoColor=white)](https://soonipo.com)
-[![Version 0.2.4](https://img.shields.io/badge/version-v0.2.4-blue?style=for-the-badge)](https://github.com/the-dot-squad/soonipo/releases)
+[![Version 0.2.5](https://img.shields.io/badge/version-v0.2.5-blue?style=for-the-badge)](https://github.com/the-dot-squad/soonipo/releases)
 [![License MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](https://github.com/the-dot-squad/soonipo/blob/main/LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
